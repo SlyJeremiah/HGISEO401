@@ -1,5 +1,7 @@
 # Field Log — Conservation Site Map
 
+Geo application design and deployment (HGISEO401)
+
 A lightweight web-GIS app that renders a GeoJSON dataset on an interactive map,
 with a searchable, filterable "field log" sidebar. Pure HTML/CSS/JS — no build
 step, so it deploys to Netlify as-is.
@@ -9,17 +11,15 @@ step, so it deploys to Netlify as-is.
 - No framework, no bundler — just static files
 
 ## Project structure
-
-```
 geo-app/
 ├── index.html
 ├── style.css
 ├── script.js
 ├── netlify.toml
 ├── data/
-│   └── sites.geojson
+│ └── sites.geojson
 └── README.md
-```
+
 
 ## Using your own data
 
@@ -66,7 +66,7 @@ git init
 git add .
 git commit -m "Initial commit: geo app scaffold"
 git branch -M main
-git remote add origin https://github.com/<your-username>/<your-repo>.git
+git remote add origin https://github.com/SlyJeremiah/HGISEO401.git
 git push -u origin main
 ```
 
