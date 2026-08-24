@@ -1,0 +1,85 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Main Ranger Post",
+        "category": "Ranger Post",
+        "status": "Active",
+        "notes": "Primary patrol dispatch point"
+      },
+      "geometry": { "type": "Point", "coordinates": [26.9911, -18.7669] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Nyamandhlovu Pan",
+        "category": "Waterhole",
+        "status": "Monitored",
+        "notes": "High wildlife concentration in dry season"
+      },
+      "geometry": { "type": "Point", "coordinates": [26.8371, -19.0154] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Guvalala Pan",
+        "category": "Waterhole",
+        "status": "Monitored",
+        "notes": "Solar-pumped, checked weekly"
+      },
+      "geometry": { "type": "Point", "coordinates": [27.0244, -18.8932] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Eastern Boundary Fence",
+        "category": "Infrastructure",
+        "status": "Needs Repair",
+        "notes": "Elephant breach reported last month"
+      },
+      "geometry": { "type": "Point", "coordinates": [27.1532, -18.7245] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Sinamatella Camp",
+        "category": "Ranger Post",
+        "status": "Active",
+        "notes": "Secondary patrol base"
+      },
+      "geometry": { "type": "Point", "coordinates": [26.4517, -18.7501] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Lion Pride Sighting",
+        "category": "Wildlife Sighting",
+        "status": "Recent",
+        "notes": "Pride of 7 recorded near tree line"
+      },
+      "geometry": { "type": "Point", "coordinates": [26.9075, -18.9603] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Snare Line Cleared",
+        "category": "Incident",
+        "status": "Resolved",
+        "notes": "12 wire snares removed during patrol"
+      },
+      "geometry": { "type": "Point", "coordinates": [26.7602, -18.8417] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Masuma Dam",
+        "category": "Waterhole",
+        "status": "Monitored",
+        "notes": "Popular viewing hide nearby"
+      },
+      "geometry": { "type": "Point", "coordinates": [26.2814, -18.6802] }
+    }
+  ]
+}
