@@ -6,26 +6,67 @@
 //   the whole layer uses `color`.
 const LAYER_CONFIG = [
   {
-    id: 'sites',
-    label: 'Sites',
-    file: 'sites.geojson',
-    type: 'point',
-    categorize: true,
-    color: '#a9a26b',
-  },
-  {
-    id: 'routes',
-    label: 'Patrol Routes',
-    file: 'routes.geojson',
-    type: 'line',
-    color: '#c6954f',
-  },
-  {
     id: 'boundary',
-    label: 'Park Boundary',
+    label: 'Boundary',
     file: 'boundary.geojson',
     type: 'polygon',
     color: '#7cb86b',
+  },
+  {
+    id: 'buildings',
+    label: 'Buildings',
+    file: 'buildings.geojson',
+    type: 'polygon',
+    color: '#c6954f',
+  },
+  {
+    id: 'vleis',
+    label: 'Vleis',
+    file: 'vleis.geojson',
+    type: 'polygon',
+    color: '#5fae9e',
+  },
+  {
+    id: 'waterholes',
+    label: 'Waterholes',
+    file: 'waterholes.geojson',
+    type: 'point',
+    color: '#4fb6c6',
+  },
+  {
+    id: 'waterways',
+    label: 'Waterways',
+    file: 'waterways.geojson',
+    type: 'line',
+    color: '#3d7ea6',
+  },
+  {
+    id: 'apubases',
+    label: 'APU Bases',
+    file: 'apubases.geojson',
+    type: 'point',
+    color: '#6fa8dc',
+  },
+  {
+    id: 'safarisites',
+    label: 'Safari Sites',
+    file: 'safarisites.geojson',
+    type: 'point',
+    color: '#e0a458',
+  },
+  {
+    id: 'pointsofinterest',
+    label: 'Points of Interest',
+    file: 'pointsofinterest.geojson',
+    type: 'point',
+    color: '#c65f4f',
+  },
+  {
+    id: 'routes',
+    label: 'Routes',
+    file: 'routes.geojson',
+    type: 'line',
+    color: '#a9a26b',
   },
 ];
 
