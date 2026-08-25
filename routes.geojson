@@ -1,0 +1,38 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Northern Patrol Route",
+        "frequency": "Daily",
+        "length_km": 14.2
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [26.9911, -18.7669],
+          [27.0244, -18.8932],
+          [27.1532, -18.7245]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Southern Patrol Route",
+        "frequency": "Twice weekly",
+        "length_km": 21.6
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [26.4517, -18.7501],
+          [26.7602, -18.8417],
+          [26.8371, -19.0154],
+          [26.9075, -18.9603]
+        ]
+      }
+    }
+  ]
+}

@@ -1,4 +1,33 @@
-const DATA_URL = 'data/sites.geojson';
+// ---------- Configure your layers here ----------
+// Each entry is one GeoJSON file rendered as one toggleable layer.
+// type: 'point' | 'line' | 'polygon' — controls how it's drawn.
+// categorize: (points only) if true, colors features by their
+//   `category` property using CATEGORY_COLORS; if false/omitted,
+//   the whole layer uses `color`.
+const LAYER_CONFIG = [
+  {
+    id: 'sites',
+    label: 'Sites',
+    file: 'data/sites.geojson',
+    type: 'point',
+    categorize: true,
+    color: '#a9a26b',
+  },
+  {
+    id: 'routes',
+    label: 'Patrol Routes',
+    file: 'data/routes.geojson',
+    type: 'line',
+    color: '#c6954f',
+  },
+  {
+    id: 'boundary',
+    label: 'Park Boundary',
+    file: 'data/boundary.geojson',
+    type: 'polygon',
+    color: '#7cb86b',
+  },
+];
 
 const CATEGORY_COLORS = {
   'Ranger Post': '#6fa8dc',
@@ -9,38 +38,37 @@ const CATEGORY_COLORS = {
 };
 const DEFAULT_COLOR = '#a9a26b';
 
-let map, markersLayer;
-let allFeatures = [];
-let activeCategories = new Set(); // empty = show all
+let map;
+let layers = {};      // id -> { config, leafletLayer, features: [], visible: bool }
 let searchTerm = '';
-let markerById = new Map();
 
 init();
 
 async function init() {
-  map = L.map('map', { zoomControl: true }).setView([-18.85, 26.8], 10);
+  map = L.map('map', { zoomControl: true }).setView([-18.85, 26.8], 9);
 
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     maxZoom: 19,
   }).addTo(map);
 
-  markersLayer = L.layerGroup().addTo(map);
+  const results = await Promise.allSettled(
+    LAYER_CONFIG.map(cfg => loadLayer(cfg))
+  );
 
-  try {
-    const res = await fetch(DATA_URL);
-    if (!res.ok) throw new Error(`Failed to load ${DATA_URL}: ${res.status}`);
-    const geojson = await res.json();
-    allFeatures = geojson.features || [];
-  } catch (err) {
-    console.error(err);
-    document.getElementById('entries').innerHTML =
-      `<li class="entry"><div class="entry-body"><div class="entry-name">Could not load data</div>
-       <div class="entry-notes">${err.message}</div></div></li>`;
-    return;
-  }
+  results.forEach((result, i) => {
+    const cfg = LAYER_CONFIG[i];
+    if (result.status === 'fulfilled') {
+      layers[cfg.id] = result.value;
+      layers[cfg.id].leafletLayer.addTo(map);
+    } else {
+      console.error(`Failed to load layer "${cfg.id}":`, result.reason);
+      layers[cfg.id] = { config: cfg, leafletLayer: null, features: [], visible: false, error: result.reason.message };
+    }
+  });
 
-  buildFilterChips();
+  fitToAllLayers();
+  buildLayerToggles();
   render();
 
   document.getElementById('search').addEventListener('input', (e) => {
@@ -49,101 +77,156 @@ async function init() {
   });
 }
 
-function buildFilterChips() {
-  const categories = [...new Set(allFeatures.map(f => f.properties.category))].sort();
+async function loadLayer(cfg) {
+  const res = await fetch(cfg.file);
+  if (!res.ok) throw new Error(`${cfg.file}: ${res.status}`);
+  const geojson = await res.json();
+  const features = geojson.features || [];
+
+  const leafletLayer = L.geoJSON(geojson, {
+    pointToLayer: (feature, latlng) => {
+      const color = cfg.categorize
+        ? (CATEGORY_COLORS[feature.properties.category] || DEFAULT_COLOR)
+        : cfg.color;
+      return L.circleMarker(latlng, {
+        radius: 7,
+        color,
+        weight: 2,
+        fillColor: color,
+        fillOpacity: 0.55,
+      });
+    },
+    style: () => ({
+      color: cfg.color,
+      weight: cfg.type === 'polygon' ? 2 : 3,
+      fillColor: cfg.color,
+      fillOpacity: cfg.type === 'polygon' ? 0.15 : 0,
+    }),
+    onEachFeature: (feature, layer) => {
+      layer.bindPopup(popupHtml(feature, cfg));
+    },
+  });
+
+  return { config: cfg, leafletLayer, features, visible: true };
+}
+
+function popupHtml(feature, cfg) {
+  const p = feature.properties || {};
+  const title = p.name || p.Name || Object.values(p)[0] || cfg.label;
+  const rows = Object.entries(p)
+    .filter(([k]) => k.toLowerCase() !== 'name')
+    .map(([k, v]) => `${escapeHtml(k)}: ${escapeHtml(v)}`)
+    .join('<br>');
+  return `<div class="popup-title">${escapeHtml(title)}</div>
+          <div class="popup-notes">${escapeHtml(cfg.label)}${rows ? '<br>' + rows : ''}</div>`;
+}
+
+function fitToAllLayers() {
+  const active = Object.values(layers).filter(l => l.leafletLayer);
+  if (!active.length) return;
+  const group = L.featureGroup(active.map(l => l.leafletLayer));
+  const bounds = group.getBounds();
+  if (bounds.isValid()) map.fitBounds(bounds, { padding: [30, 30] });
+}
+
+function buildLayerToggles() {
   const wrap = document.getElementById('filters');
   wrap.innerHTML = '';
 
-  categories.forEach(cat => {
-    const chip = document.createElement('button');
-    chip.className = 'chip';
-    chip.textContent = cat;
-    chip.style.setProperty('--chip-color', CATEGORY_COLORS[cat] || DEFAULT_COLOR);
-    chip.addEventListener('click', () => {
-      if (activeCategories.has(cat)) activeCategories.delete(cat);
-      else activeCategories.add(cat);
-      chip.classList.toggle('active');
+  LAYER_CONFIG.forEach(cfg => {
+    const state = layers[cfg.id];
+    const row = document.createElement('label');
+    row.className = 'layer-toggle';
+    if (state.error) row.classList.add('layer-error');
+
+    const count = state.features ? state.features.length : 0;
+
+    row.innerHTML = `
+      <input type="checkbox" ${state.visible ? 'checked' : ''} ${state.error ? 'disabled' : ''} />
+      <span class="swatch" style="background:${cfg.color}"></span>
+      <span class="layer-name">${escapeHtml(cfg.label)}</span>
+      <span class="layer-count">${state.error ? 'failed to load' : count}</span>
+    `;
+
+    const checkbox = row.querySelector('input');
+    checkbox.addEventListener('change', () => {
+      state.visible = checkbox.checked;
+      if (state.visible) {
+        state.leafletLayer.addTo(map);
+      } else {
+        map.removeLayer(state.leafletLayer);
+      }
       render();
     });
-    wrap.appendChild(chip);
+
+    wrap.appendChild(row);
   });
 }
 
-function getFiltered() {
-  return allFeatures.filter(f => {
-    const p = f.properties;
-    const matchesCategory = activeCategories.size === 0 || activeCategories.has(p.category);
-    const haystack = `${p.name} ${p.category} ${p.status} ${p.notes || ''}`.toLowerCase();
-    const matchesSearch = !searchTerm || haystack.includes(searchTerm);
-    return matchesCategory && matchesSearch;
+function getVisibleFeatures() {
+  const out = [];
+  Object.values(layers).forEach(state => {
+    if (!state.visible || !state.features) return;
+    state.features.forEach(f => out.push({ feature: f, config: state.config, layerState: state }));
+  });
+  if (!searchTerm) return out;
+  return out.filter(({ feature, config }) => {
+    const p = feature.properties || {};
+    const haystack = `${config.label} ${Object.values(p).join(' ')}`.toLowerCase();
+    return haystack.includes(searchTerm);
   });
 }
 
 function render() {
-  const filtered = getFiltered();
-  renderMarkers(filtered);
-  renderList(filtered);
+  renderList(getVisibleFeatures());
 }
 
-function renderMarkers(features) {
-  markersLayer.clearLayers();
-  markerById.clear();
-
-  features.forEach((f, i) => {
-    const [lng, lat] = f.geometry.coordinates;
-    const color = CATEGORY_COLORS[f.properties.category] || DEFAULT_COLOR;
-
-    const marker = L.circleMarker([lat, lng], {
-      radius: 7,
-      color: color,
-      weight: 2,
-      fillColor: color,
-      fillOpacity: 0.55,
-    });
-
-    marker.bindPopup(
-      `<div class="popup-title">${escapeHtml(f.properties.name)}</div>
-       <div class="popup-notes">${escapeHtml(f.properties.category)} · ${escapeHtml(f.properties.status)}<br>${escapeHtml(f.properties.notes || '')}</div>`
-    );
-
-    marker.addTo(markersLayer);
-    markerById.set(f, marker);
-  });
-}
-
-function renderList(features) {
+function renderList(items) {
   const list = document.getElementById('entries');
   list.innerHTML = '';
 
-  features.forEach((f, i) => {
-    const p = f.properties;
-    const color = CATEGORY_COLORS[p.category] || DEFAULT_COLOR;
+  items.forEach((item, i) => {
+    const { feature, config } = item;
+    const p = feature.properties || {};
+    const title = p.name || p.Name || Object.values(p)[0] || config.label;
+    const secondary = Object.entries(p).find(([k]) => k.toLowerCase() !== 'name');
 
     const li = document.createElement('li');
     li.className = 'entry';
     li.innerHTML = `
       <span class="entry-index">${String(i + 1).padStart(2, '0')}</span>
       <div class="entry-body">
-        <div class="entry-name">${escapeHtml(p.name)}</div>
+        <div class="entry-name">${escapeHtml(title)}</div>
         <div class="entry-meta">
-          <span class="tag" style="background:${color}">${escapeHtml(p.category)}</span>
-          <span class="status">${escapeHtml(p.status)}</span>
+          <span class="tag" style="background:${config.color}">${escapeHtml(config.label)}</span>
+          ${secondary ? `<span class="status">${escapeHtml(secondary[0])}: ${escapeHtml(secondary[1])}</span>` : ''}
         </div>
-        <div class="entry-notes">${escapeHtml(p.notes || '')}</div>
       </div>`;
 
     li.addEventListener('click', () => {
-      const marker = markerById.get(f);
-      if (!marker) return;
-      map.flyTo(marker.getLatLng(), 13, { duration: 0.6 });
-      marker.openPopup();
+      focusFeature(feature);
     });
 
     list.appendChild(li);
   });
 
-  document.getElementById('count').textContent =
-    `${features.length} of ${allFeatures.length} entries`;
+  const totalLoaded = Object.values(layers).reduce((sum, l) => sum + (l.features ? l.features.length : 0), 0);
+  document.getElementById('count').textContent = `${items.length} of ${totalLoaded} entries`;
+}
+
+function focusFeature(feature) {
+  const geom = feature.geometry;
+  if (!geom) return;
+
+  let latlng;
+  if (geom.type === 'Point') {
+    latlng = [geom.coordinates[1], geom.coordinates[0]];
+    map.flyTo(latlng, 13, { duration: 0.6 });
+  } else {
+    const tempLayer = L.geoJSON(feature);
+    const bounds = tempLayer.getBounds();
+    if (bounds.isValid()) map.flyToBounds(bounds, { padding: [40, 40], duration: 0.6 });
+  }
 }
 
 function escapeHtml(str) {
