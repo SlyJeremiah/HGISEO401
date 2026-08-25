@@ -8,7 +8,7 @@ const LAYER_CONFIG = [
   {
     id: 'sites',
     label: 'Sites',
-    file: 'data/sites.geojson',
+    file: 'sites.geojson',
     type: 'point',
     categorize: true,
     color: '#a9a26b',
@@ -16,14 +16,14 @@ const LAYER_CONFIG = [
   {
     id: 'routes',
     label: 'Patrol Routes',
-    file: 'data/routes.geojson',
+    file: 'routes.geojson',
     type: 'line',
     color: '#c6954f',
   },
   {
     id: 'boundary',
     label: 'Park Boundary',
-    file: 'data/boundary.geojson',
+    file: 'boundary.geojson',
     type: 'polygon',
     color: '#7cb86b',
   },
