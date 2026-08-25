@@ -1,0 +1,10 @@
+{
+"type": "FeatureCollection",
+"name": "apubases",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "Name": "Sector_One" }, "geometry": { "type": "Point", "coordinates": [ 27.030192244343723, -18.58683642261294 ] } },
+{ "type": "Feature", "properties": { "Name": "Arcacia" }, "geometry": { "type": "Point", "coordinates": [ 26.995548612741722, -18.660133587411625 ] } },
+{ "type": "Feature", "properties": { "Name": "Tuskers_Campsite" }, "geometry": { "type": "Point", "coordinates": [ 27.075472619469679, -18.640797306050565 ] } }
+]
+}

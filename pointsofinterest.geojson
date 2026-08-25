@@ -1,0 +1,10 @@
+{
+"type": "FeatureCollection",
+"name": "pointsofinterest",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "Name": "Hwange Airport" }, "geometry": { "type": "Point", "coordinates": [ 27.000108286844146, -18.635167335672808 ] } },
+{ "type": "Feature", "properties": { "Name": "Painted Dog Conservation" }, "geometry": { "type": "Point", "coordinates": [ 26.996562523424529, -18.631734136171268 ] } },
+{ "type": "Feature", "properties": { "Name": "Mabale" }, "geometry": { "type": "Point", "coordinates": [ 27.034666390445455, -18.570572646355462 ] } }
+]
+}
